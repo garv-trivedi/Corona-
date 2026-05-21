@@ -237,7 +237,6 @@ st.title("Inverse Compton Spectra for Single Scattering")
 # Sidebar inputs
 # -----------------------------
 st.sidebar.header("Seed photon spectrum")
-
 uploaded_file = st.sidebar.file_uploader(
     "Upload a whitespace/comma separated txt file",
     type=["txt", "csv"]
@@ -245,26 +244,11 @@ uploaded_file = st.sidebar.file_uploader(
 
 st.sidebar.write("File must contain columns named `Epsilon` and `V_Epsilon`.")
 
-# -----------------------------
-# Data source selection
-# -----------------------------
-use_sample = st.sidebar.checkbox("Use Sample.txt (default)", value=True)
+if uploaded_file is None:
+    st.info("Upload a seed-photon file with columns `Epsilon` and `V_Epsilon` to run the model.")
+    st.stop()
 
-if use_sample:
-    try:
-        seed_df = load_seed_spectrum("Sample.txt")
-        st.success("Using Sample.txt as default seed photon spectrum")
-    except Exception as e:
-        st.error(f"Failed to load Sample.txt: {e}")
-        st.stop()
-
-else:
-    if uploaded_file is None:
-        st.warning("Please upload a file or enable 'Use Sample.txt'")
-        st.stop()
-    
-    seed_df = load_seed_spectrum(uploaded_file)
-    st.success(f"Using uploaded file: {uploaded_file.name}")
+seed_df = load_seed_spectrum(uploaded_file)
 seed_E = seed_df["Epsilon"].to_numpy(dtype=float)
 seed_V = seed_df["V_Epsilon"].to_numpy(dtype=float)
 
@@ -370,7 +354,7 @@ with tab_mj:
         g_min = 1.0 + (1e-4 * theta) 
         g_max_thermal = 1.0 + (25.0 * theta)
         
-        gamma_grid = np.logspace(np.log10(g_min), np.log10(g_max_thermal), int(n_gamma))
+        gamma_grid = np.linspace(g_min, g_max_thermal, int(n_gamma))
 
         ne_gamma = maxwell_juttner_ne_gamma(gamma_grid, nth, T_thermal)
         emissivity = thermal_ic_emissivity(eps_grid, seed_E, seed_V, gamma_grid, ne_gamma)
